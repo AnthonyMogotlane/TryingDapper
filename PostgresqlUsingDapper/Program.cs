@@ -2,43 +2,53 @@
 using Npgsql;
 using PostgresqlUsingDapper;
 
-string connectionString = "Server=heffalump.db.elephantsql.com;Port=5432;Database=xbixatua;UserId=xbixatua;Password=MZpFuYnavsnJw65QqMIG9JtHM29yqMz6";
-using NpgsqlConnection connection = new NpgsqlConnection(connectionString);
+string cs = "Server=heffalump.db.elephantsql.com;Port=5432;Database=xbixatua;UserId=xbixatua;Password=MZpFuYnavsnJw65QqMIG9JtHM29yqMz6";
 
-connection.Open();
+using NpgsqlConnection con = new NpgsqlConnection(cs);
+con.Open();
 
-string MEMBERS = @"CREATE TABLE if NOT EXISTS members (
+// Creating a table
+con.Execute(@"CREATE TABLE if NOT EXISTS members (
 	id serial PRIMARY KEY,
-	first_name VARCHAR(45) NOT NULL,
-	last_name VARCHAR(45) NOT NULL,
-    location VARCHAR(45) NOT NULL
-);" ;
+	firstname VARCHAR(45) NOT NULL,
+	lastname VARCHAR(45) NOT NULL,
+	location VARCHAR(45) NOT NULL
+);");
 
-connection.Execute(MEMBERS);
-
-connection.Execute(@"
+// Inserting data into the table
+con.Execute(@"
 	INSERT INTO 
-		members (first_name, last_name, location)
-	VALUES 
-		(@FistName, @LastName, @Location);",
+		members (firstname, lastname, location)
+	VALUES (@FirstName, @LastName, @Location);",
+	new Object [] {
 		new Members() {
-		FistName = "Rock",
-		LastName = "Dudula",
-		Location = "Mthatha"
+			FirstName = "Joel",
+			LastName = "Mog",
+			Location = "Joburg"
+		},
+		new Members() {
+			FirstName = "Thando",
+			LastName = "Thabethe",
+			Location = "Zinyola"
+		},
+		new Members() {
+			FirstName = "John",
+			LastName = "Kay",
+			Location = "New York"
+		}
 });
 
-var members = connection.Query<Members>(@"select * from members");
+// Returning a list of object in the table
+var members = con.Query<Members>(@"SELECT * FROM members");
 Console.WriteLine(members.Count());
 
-using (var cmd = new NpgsqlCommand("SELECT * FROM members", connection))
-using (var reader = cmd.ExecuteReader())
+// Outputing data from the table
+Console.WriteLine($"ID| Firstname | Lastname | Location");
+foreach (var item in members)
 {
-    while (reader.Read())
-    {
-        for(int i = 0; i < reader.FieldCount; i++)
-        {
-            Console.WriteLine(reader.GetValue(i));
-        }
-        Console.WriteLine();
-    }
+	Console.WriteLine($"-----------------------------------");
+	Console.WriteLine($"{item.ID} | {item.FirstName} | {item.LastName} | {item.Location}");
 }
+
+
+
